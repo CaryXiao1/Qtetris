@@ -11,42 +11,70 @@ import numpy as np
 from engine.playerboard import PlayerBoard
 
 class TetrisCanvas(tk.Canvas):
-    def __init__(self, root, w, h):
+    def __init__(self, root, w, h, score_str, moves_str):
         super().__init__(root, width=w, height=h, bg="black")
         # self.matrix = np.zeros((20, 10))
         self.board = PlayerBoard()
+        self.score = 0
+        self.num_moves = 0
+        self.score_str = score_str
+        self.moves_str = moves_str
 
     def start_game(self):
-        # TODO: add stuff like including buttons for move left and right and stuff
-        pass
-    
+        # draw line
+        # render the starting pos of the 
+        self.board = PlayerBoard()
+        self.score = 0
+        self.num_moves = 0
+        self.score_str.set("Score: 0")
+        self.moves_str.set("# Moves: 0")
+        self.update_game()
+
+    def do_move(self):
+        points_added = self.board.turn()
+        self.update_game()
+        self.num_moves += 1
+        self.moves_str.set("# Moves: " + str(self.num_moves))
+        if points_added != 0:
+            self.score += points_added
+            self.score_str.set("Score: " + str(self.score))
+
     def left(self):
         self.board.set_move(0)
-        self.board.turn()
+        self.do_move()
 
     def right(self):
         self.board.set_move(1)
-        self.board.turn()
-        self.update_game()
-    
+        self.do_move()
+
     def rotate_left(self):
         self.board.set_move(2)
-        self.board.turn()
-        self.update_game()
+        self.do_move()
 
     def rotate_right(self):
         self.board.set_move(3)
-        self.board.turn()
-        self.update_game()
+        self.do_move()
 
     def do_nothing(self):
         self.board.set_move(4)
-        self.board.turn()
-        self.update_game()
+        self.do_move()
+
+    # wrapper functions to eliminate event from keystrokes
+    def left_keypress(self, _):
+        self.left()
+    def right_keypress(self, _):
+        self.right()
+    def do_nothing_keypress(self, _):
+        self.do_nothing()
+    def rotate_left_keypress(self, _):
+        self.rotate_left()
+    def rotate_right_keypress(self, _):
+        self.rotate_right()
 
     def update_game(self):
         states = self.board.display_info() # TODO: replace that with Michael's function!
         self.delete("all")
+        self.create_line(0, 120, 300, 120, fill="red")
         for i in range(20):
             for j in range(10):
                 if states[i, j] != 0:
@@ -65,24 +93,35 @@ class App:
         right_frame.pack(side=tk.RIGHT)
         left_frame = tk.Frame(root)
         left_frame.pack(side=tk.LEFT)
-
-        canvas = TetrisCanvas(left_frame, w=300, h=600)
+        # create tracker for score
+        score_str = tk.StringVar(right_frame, "Score: 0")
+        score_label = tk.Label(right_frame, textvariable=score_str, height=2)
+        score_label.pack()
+        # create tracker for how many moves made 
+        moves_str = tk.StringVar(right_frame, "# Moves: 0")
+        moves_label = tk.Label(right_frame, textvariable=moves_str, height=2)
+        moves_label.pack()
+        # create tetris board
+        canvas = TetrisCanvas(left_frame, 300, 600, score_str, moves_str)
         canvas.pack()
-
-        # Create a button and place it in the window
+        # movement buttons
         start = tk.Button(right_frame, text="Start Game!", command=canvas.start_game)
         left = tk.Button(right_frame, text="Left", command=canvas.left)
         right = tk.Button(right_frame, text="Right", command=canvas.right)
         do_nothing = tk.Button(right_frame, text="Pass", command=canvas.do_nothing)
         rotate_left = tk.Button(right_frame, text="Rotate Left", command=canvas.rotate_left)
         rotate_right = tk.Button(right_frame, text="Rotate Right", command=canvas.rotate_right)
-
-        string_variable = tk.StringVar(right_frame, "# Moves: 0")
-        
-        label = tk.Label(right_frame, textvariable=string_variable, height=10)
-        label.pack()
-
-        start.pack(pady=5, padx=5)  # pady adds some vertical space around the button
+        # add keybinds as well
+        root.bind("a", canvas.left_keypress)
+        root.bind("<Left>", canvas.left_keypress)
+        root.bind("d", canvas.right_keypress)
+        root.bind("<Right>", canvas.right_keypress)
+        root.bind("s", canvas.do_nothing_keypress)
+        root.bind("<Down>", canvas.do_nothing_keypress)
+        root.bind("q", canvas.rotate_left_keypress)
+        root.bind("e", canvas.rotate_right_keypress)
+        # Add buttons below labels
+        start.pack(pady=5, padx=5) 
         left.pack(pady=5)
         right.pack(pady=5)
         do_nothing.pack(pady=5)
