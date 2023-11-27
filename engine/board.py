@@ -38,7 +38,15 @@ class Board():
         return np.any(np.logical_and(mat, submat))
 
     def check_OOB(self, mat, r, c, side_len):  # true if piece OOB
-        # TODO: implement me!
+        # 1. generate submatrix where elements indicate OOB
+        in_bounds = np.zeros((20, 10), dtype=bool)
+        submat = np.pad(in_bounds, 4, 'constant', constant_values=True)[r+4:r+4+side_len, c+4:c+4+side_len]
+
+        # 2. do or of elementwise and of mat and submatrix
+        return np.any(np.logical_and(mat, submat))
+
+    def freeze(self, mat, r, c, side_len):  # overwrite occupancy with positive values in mat
+        self.occupancy[r:r+side_len, c:c+side_len] = np.logical_or(self.occupancy[r:r+side_len, c:c+side_len], mat)
 
     def update_piece(self, player_input):
         new_c = self.piece_c
@@ -64,7 +72,7 @@ class Board():
 
     def gravity_piece(self):
         new_r = self.piece_r + 1
-        piece_width = 3 + int(self.cur_type in ['I', 'O'])
+        piece_width = len(self.piece_ori)
 
         if (self.check_OOB(self.piece_ori, new_r, self.piece_c, piece_width) or
                 self.check_collision(self.piece_ori, new_r, self.piece_c, piece_width)):
@@ -74,6 +82,8 @@ class Board():
         return False
 
     def turn(self):
+        filled_lines = 0
+
         # 1. get an input from user
         player_input = self.get_input()
 
@@ -85,14 +95,23 @@ class Board():
 
         # 3.1 if not possible, freeze piece
         if hit_bottom:
-        # TODO: implement me!
+            self.freeze(self.piece_ori, self.piece_r, self.piece_c, len(self.piece_ori))
 
-        # 3.2 check if lines are cleared, and update occupancy accordingly
-        # TODO: implement me!
+            # 3.2 check if lines are cleared, and update occupancy accordingly
+            for i in range(20):
+                if np.all(self.occupancy[i - filled_lines, :]):
+                    filled_lines += 1
+                    self.occupancy = np.delete(self.occupancy, i, 0)
 
-        # 3.3 generate a new piece, and check if it is obstructed
-        self.gen_new_tetromino()
-        # TODO: implement me!
+            for i in range(filled_lines):
+                self.occupancy = np.vstack([np.zeros((10), dtype=bool), self.occupancy])
+
+            # 3.3 generate a new piece, and check if it is obstructed
+            self.gen_new_tetromino()
+            if self.check_collision(self.piece_ori, self.piece_r, self.piece_c, len(self.piece_ori)):
+                return -1  # game end
+
+        return filled_lines ** 2  # score earned this move
 
 def main():
     b = Board()
