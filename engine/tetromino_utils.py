@@ -31,19 +31,19 @@ START_Z = np.asarray([[0, 0, 0],
                       [0, 1, 1]])
 
 def get_start_ori(piece_type):
-    if self.cur_type == 'O':
+    if piece_type == 'O':
         return START_O
-    elif self.cur_type == 'T':
+    elif piece_type == 'T':
         return START_T
-    elif self.cur_type == 'I':
+    elif piece_type == 'I':
         return START_I
-    elif self.cur_type == 'L':
+    elif piece_type == 'L':
         return START_L
-    elif self.cur_type == 'J':
+    elif piece_type == 'J':
         return START_J
-    elif self.cur_type == 'S':
+    elif piece_type == 'S':
         return START_S
-    elif self.cur_type == 'Z':
+    elif piece_type == 'Z':
         return START_Z
     return None
 

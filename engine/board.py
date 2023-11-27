@@ -1,5 +1,5 @@
 import numpy as np
-import tetromino_utils
+from .tetromino_utils import *
 
 class Board():
     def __init__(self):
