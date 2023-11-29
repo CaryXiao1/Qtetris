@@ -126,8 +126,7 @@ class MiniBoard():
     2 bits for current piece orientation
     = 64 bits
     '''
-    '''def get_state(self):
-        assert False  # NOT IMPLEMENTED
+    def get_state(self):
         out = 0
         bit = 0
 
@@ -136,19 +135,19 @@ class MiniBoard():
                 if self.occupancy[r, c]:
                     out += r << bit
                     break
-                bit += 5
+                bit += 3
 
         out += self.piece_c << bit
-        bit += 4
+        bit += 2
 
         out += self.piece_r << bit
-        bit += 5
-
-        out += self.cur_type << bit
         bit += 3
 
+        out += int(self.cur_type == 'L') << bit
+        bit += 1
+
         out += self.ori_number << bit
-        return out'''
+        return out
 
 def main():
     b = Board()
