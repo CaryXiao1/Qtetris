@@ -32,7 +32,7 @@ class Board():
 
     def check_collision(self, mat, r, c, side_len):  # true if collision
         # 1. extract submatrix from occupancy with correct size
-        submat = self.occupancy[r:r+side_len, c:c+side_len]
+        submat = np.pad(self.occupancy, 4, 'constant', constant_values=False)[r+4:r+4+side_len, c+4:c+4+side_len]
 
         # 2. do or of elementwise and of mat and submatrix
         return np.any(np.logical_and(mat, submat))
@@ -46,7 +46,10 @@ class Board():
         return np.any(np.logical_and(mat, submat))
 
     def freeze(self, mat, r, c, side_len):  # overwrite occupancy with positive values in mat
-        self.occupancy[r:r+side_len, c:c+side_len] = np.logical_or(self.occupancy[r:r+side_len, c:c+side_len], mat)
+        OOB_buffer = np.pad(self.occupancy, 4, 'constant', constant_values=False)
+        OOB_buffer[r+4:r+4+side_len, c+4:c+4+side_len] = np.logical_or(OOB_buffer[r+4:r+4+side_len, c+4:c+4+side_len], mat)
+        # self.occupancy[r:r+side_len, c:c+side_len] = np.logical_or(self.occupancy[r:r+side_len, c:c+side_len], mat)
+        self.occupancy = OOB_buffer[4:24, 4:14]
 
     def update_piece(self, player_input):
         new_c = self.piece_c
@@ -100,8 +103,8 @@ class Board():
             # 3.2 check if lines are cleared, and update occupancy accordingly
             for i in range(20):
                 if np.all(self.occupancy[i - filled_lines, :]):
+                    self.occupancy = np.delete(self.occupancy, i - filled_lines, 0)
                     filled_lines += 1
-                    self.occupancy = np.delete(self.occupancy, i, 0)
 
             for i in range(filled_lines):
                 self.occupancy = np.vstack([np.zeros((10), dtype=bool), self.occupancy])
