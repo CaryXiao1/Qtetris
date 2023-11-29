@@ -8,13 +8,13 @@ moves they have made.
 
 import tkinter as tk
 import numpy as np
-from engine.miniboard import MiniBoard
+from engine.miniplayerboard import MiniPlayerBoard
 
 class TetrisCanvas(tk.Canvas):
     def __init__(self, root, w, h, score_str, moves_str):
         super().__init__(root, width=w, height=h, bg="black")
         # self.matrix = np.zeros((20, 10))
-        self.board = MiniBoard()
+        self.board = MiniPlayerBoard()
         self.score = 0
         self.num_moves = 0
         self.score_str = score_str
@@ -24,7 +24,7 @@ class TetrisCanvas(tk.Canvas):
     def start_game(self):
         # draw line
         # render the starting pos of the
-        self.board = MiniBoard()
+        self.board = MiniPlayerBoard()
         self.score = 0
         self.num_moves = 0
         self.score_str.set("Score: 0")
