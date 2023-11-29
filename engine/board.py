@@ -9,6 +9,7 @@ class Board():
         self.piece_r = None
         self.piece_c = None
         self.piece_ori = None
+        self.ori_number = 0
 
         self.gen_new_tetromino()
         self.gen_new_tetromino()
@@ -19,6 +20,7 @@ class Board():
         (self.piece_r, self.piece_c) = (0, 3)  # upper left corner of new piece
 
         self.piece_ori = get_start_ori(self.cur_type)
+        self.ori_number = 0
 
     def get_input(self):
         ''' input options:
@@ -73,6 +75,10 @@ class Board():
         self.piece_c = new_c
         self.piece_ori = new_ori
 
+        # bookkeeping for generating state number
+        if player_input == 2: self.ori_number = (self.ori_number + 1) % 4
+        elif player_input == 3: self.ori_number = (self.ori_number - 1) % 4
+
     def gravity_piece(self):
         new_r = self.piece_r + 1
         piece_width = len(self.piece_ori)
@@ -115,6 +121,37 @@ class Board():
                 return -1  # game end
 
         return filled_lines ** 2  # score earned this move
+
+    '''
+    piece state is represented with
+    5 bits per column * 10 columns
+    4 + 5 bits for current piece column and row
+    3 bits for current piece type
+    2 bits for current piece orientation
+    = 64 bits
+    '''
+    def get_state(self):
+        out = 0
+        bit = 0
+
+        for c in range(10):
+            for r in range(20):
+                if self.occupancy[r, c]:
+                    out += r << bit
+                    break
+                bit += 5
+
+        out += self.piece_c << bit
+        bit += 4
+
+        out += self.piece_r << bit
+        bit += 5
+
+        out += self.cur_type << bit
+        bit += 3
+
+        out += self.ori_number << bit
+        return out
 
 def main():
     b = Board()
