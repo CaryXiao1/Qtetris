@@ -1,5 +1,5 @@
 """
-client.py 
+client.py
 
 uses the functions and classes defined the engine folder to create a GUI that can be used
 by a human player to record the number of points they have achieved versus the number of
@@ -19,19 +19,25 @@ class TetrisCanvas(tk.Canvas):
         self.num_moves = 0
         self.score_str = score_str
         self.moves_str = moves_str
+        self.game_over = False
 
     def start_game(self):
         # draw line
-        # render the starting pos of the 
+        # render the starting pos of the
         self.board = PlayerBoard()
         self.score = 0
         self.num_moves = 0
         self.score_str.set("Score: 0")
         self.moves_str.set("# Moves: 0")
         self.update_game()
+        self.game_over = False
 
     def do_move(self):
+        if self.game_over: return
         points_added = self.board.turn()
+        if points_added == -1:
+            self.game_over = True
+            return
         self.update_game()
         self.num_moves += 1
         self.moves_str.set("# Moves: " + str(self.num_moves))
@@ -88,7 +94,7 @@ class App:
         print("Button clicked!")
 
     def __init__(self, root):
-        self.root = root        
+        self.root = root
         right_frame = tk.Frame(root)
         right_frame.pack(side=tk.RIGHT)
         left_frame = tk.Frame(root)
@@ -97,7 +103,7 @@ class App:
         score_str = tk.StringVar(right_frame, "Score: 0")
         score_label = tk.Label(right_frame, textvariable=score_str, height=2)
         score_label.pack()
-        # create tracker for how many moves made 
+        # create tracker for how many moves made
         moves_str = tk.StringVar(right_frame, "# Moves: 0")
         moves_label = tk.Label(right_frame, textvariable=moves_str, height=2)
         moves_label.pack()
@@ -121,7 +127,7 @@ class App:
         root.bind("q", canvas.rotate_left_keypress)
         root.bind("e", canvas.rotate_right_keypress)
         # Add buttons below labels
-        start.pack(pady=5, padx=5) 
+        start.pack(pady=5, padx=5)
         left.pack(pady=5)
         right.pack(pady=5)
         do_nothing.pack(pady=5)
