@@ -8,13 +8,13 @@ moves they have made.
 
 import tkinter as tk
 import numpy as np
-from engine.playerboard import PlayerBoard
+from engine.miniboard import MiniBoard
 
 class TetrisCanvas(tk.Canvas):
     def __init__(self, root, w, h, score_str, moves_str):
         super().__init__(root, width=w, height=h, bg="black")
         # self.matrix = np.zeros((20, 10))
-        self.board = PlayerBoard()
+        self.board = MiniBoard()
         self.score = 0
         self.num_moves = 0
         self.score_str = score_str
@@ -24,7 +24,7 @@ class TetrisCanvas(tk.Canvas):
     def start_game(self):
         # draw line
         # render the starting pos of the
-        self.board = PlayerBoard()
+        self.board = MiniBoard()
         self.score = 0
         self.num_moves = 0
         self.score_str.set("Score: 0")
@@ -80,12 +80,12 @@ class TetrisCanvas(tk.Canvas):
     def update_game(self):
         states = self.board.display_info() # TODO: replace that with Michael's function!
         self.delete("all")
-        self.create_line(0, 120, 300, 120, fill="red")
-        for i in range(20):
-            for j in range(10):
+        self.create_line(0, 100, 200, 100, fill="red")
+        for i in range(8):
+            for j in range(4):
                 if states[i, j] != 0:
-                    x1, x2 = 30 * j + 1, 30 * j + 30
-                    y1, y2 = 30 * i + 1, 30 * i + 30
+                    x1, x2 = 50 * j + 1, 50 * j + 50
+                    y1, y2 = 50 * i + 1, 50 * i + 50
                     color = "gray" if states[i, j] == 1 else "red"
                     self.create_rectangle(x1, y1, x2, y2, fill=color)
 
@@ -108,7 +108,7 @@ class App:
         moves_label = tk.Label(right_frame, textvariable=moves_str, height=2)
         moves_label.pack()
         # create tetris board
-        canvas = TetrisCanvas(left_frame, 300, 600, score_str, moves_str)
+        canvas = TetrisCanvas(left_frame, 200, 400, score_str, moves_str)
         canvas.pack()
         # movement buttons
         start = tk.Button(right_frame, text="Start Game!", command=canvas.start_game)
