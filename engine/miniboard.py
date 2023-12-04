@@ -12,7 +12,6 @@ class MiniBoard():
             self.piece_c = None
             self.piece_ori = None
             self.ori_number = 0
-            self.next_is_L = None  # bookkeeping used for state-pair generation
 
             self.gen_new_tetromino()
         else:
@@ -22,8 +21,8 @@ class MiniBoard():
 
             # assume no holes in board
             for c in range(4):
-                self.occupancy[state%8:, c] = True
-                state >>= 3
+                if state%16 != 8: self.occupancy[state%8:, c] = True
+                state >>= 4
 
             self.piece_c = state%4
             state >>= 2
@@ -40,10 +39,7 @@ class MiniBoard():
             self.piece_ori = np.rot90(get_start_ori(self.cur_type), self.ori_number)
 
     def gen_new_tetromino(self):
-        if self.next_is_L is None: self.cur_type = np.random.choice(['L', 'I'])
-        elif self.next_is_L: self.cur_type = 'L'
-        else: self.cur_type = 'I'
-
+        self.cur_type = np.random.choice(['L', 'I'])
         (self.piece_r, self.piece_c) = (0, 1)  # upper left corner of new piece
 
         self.piece_ori = get_start_ori(self.cur_type)
@@ -69,7 +65,7 @@ class MiniBoard():
     def check_OOB(self, mat, r, c, side_len):  # true if piece OOB
         # 1. generate submatrix where elements indicate OOB
         in_bounds = np.zeros((8, 4), dtype=bool)
-        submat = np.pad(in_bounds, 2, 'constant', constant_values=True)[r+2:r+2+side_len, c+2:c+2+side_len]
+        submat = np.pad(in_bounds, 4, 'constant', constant_values=True)[r+4:r+4+side_len, c+4:c+4+side_len]
 
         # 2. do or of elementwise and of mat and submatrix
         return np.any(np.logical_and(mat, submat))
@@ -150,7 +146,7 @@ class MiniBoard():
 
     '''
     piece state is represented with
-    3 bits per column * 4 columns
+    4 bits per column * 4 columns
     2 + 3 bits for current piece column and row
     1 bits for current piece type
     2 bits for current piece orientation
@@ -161,11 +157,11 @@ class MiniBoard():
         bit = 0
 
         for c in range(4):
-            for r in range(8):
-                if self.occupancy[r, c]:
+            for r in range(9):
+                if r == 8 or self.occupancy[r, c]:
                     out += r << bit
                     break
-            bit += 3
+            bit += 4
 
         out += self.piece_c << bit
         bit += 2
