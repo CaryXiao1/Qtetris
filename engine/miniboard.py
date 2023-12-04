@@ -2,35 +2,41 @@ import numpy as np
 from .mini_tetromino_utils import *
 
 class MiniBoard():
-    def __init__(self):
-        self.occupancy = np.zeros((8, 4), dtype=bool)
-        self.cur_type = None
-        self.piece_r = None
-        self.piece_c = None
-        self.piece_ori = None
-        self.ori_number = 0
+    def __init__(self, *args):
+        assert 0 <= len(args) < 2
 
-        self.gen_new_tetromino()
+        if len(args) == 0:
+            self.occupancy = np.zeros((8, 4), dtype=bool)
+            self.cur_type = None
+            self.piece_r = None
+            self.piece_c = None
+            self.piece_ori = None
+            self.ori_number = 0
 
-    def __init__(self, state):
-        self.occupancy = np.zeros((8, 4), dtype=bool)
+            self.gen_new_tetromino()
+        else:
+            state = args[0]
 
-        # assume no holes in board
-        for c in range(4):
-            self.occupancy[state%8:, c] = True
+            self.occupancy = np.zeros((8, 4), dtype=bool)
+
+            # assume no holes in board
+            for c in range(4):
+                self.occupancy[state%8:, c] = True
+                state >>= 3
+
+            self.piece_c = state%4
+            state >>= 2
+
+            self.piece_r = state%8
             state >>= 3
 
-        self.piece_c = state%4
-        state >>= 2
+            if state%2: self.cur_type = 'L'
+            else: self.cur_type = 'I'
+            state >>= 1
 
-        self.piece_r = state%8
-        state >>= 3
+            self.ori_number = state
 
-        if state%2: self.cur_type = 'L'
-        else: self.cur_type = 'I'
-        state >>= 1
-
-        self.ori_number = state
+            self.piece_ori = np.rot90(get_start_ori(self.cur_type), self.ori_number)
 
 
     def gen_new_tetromino(self):

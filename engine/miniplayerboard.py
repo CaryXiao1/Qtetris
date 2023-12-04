@@ -1,9 +1,11 @@
 from .miniboard import MiniBoard
 
 class MiniPlayerBoard(MiniBoard):
-    def __init__(self):
+    def __init__(self, *args):
+        assert 0 <= len(args) < 2
         self.move = 4
-        super().__init__()
+        if len(args) == 0: super().__init__()
+        else: super().__init__(args[0])
 
     ''' input options:
     0 : translate left
