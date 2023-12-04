@@ -12,6 +12,7 @@ class MiniBoard():
             self.piece_c = None
             self.piece_ori = None
             self.ori_number = 0
+            self.next_is_L = None  # bookkeeping used for state-pair generation
 
             self.gen_new_tetromino()
         else:
@@ -38,9 +39,11 @@ class MiniBoard():
 
             self.piece_ori = np.rot90(get_start_ori(self.cur_type), self.ori_number)
 
-
     def gen_new_tetromino(self):
-        self.cur_type = np.random.choice(['L', 'I'])
+        if self.next_is_L is None: self.cur_type = np.random.choice(['L', 'I'])
+        elif self.next_is_L: self.cur_type = 'L'
+        else: self.cur_type = 'I'
+
         (self.piece_r, self.piece_c) = (0, 1)  # upper left corner of new piece
 
         self.piece_ori = get_start_ori(self.cur_type)
@@ -162,7 +165,7 @@ class MiniBoard():
                 if self.occupancy[r, c]:
                     out += r << bit
                     break
-                bit += 3
+            bit += 3
 
         out += self.piece_c << bit
         bit += 2
@@ -174,6 +177,7 @@ class MiniBoard():
         bit += 1
 
         out += self.ori_number << bit
+        bit += 1
         return out
 
 def main():
