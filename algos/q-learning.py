@@ -2,6 +2,12 @@
 q-learning.py
 
 This file implements the main algorithm for generating the policy for a given dataset.
+It uses q-learning and e-greedy to generate an output 
+
+usage:
+python3 q-learning.py <dataset>.csv <output>.policy
+
+To see how we create the dataset, please see generate-sars-data.py.
 """
 
 import sys
@@ -14,9 +20,9 @@ NUM_ITERATIONS = 100000
 MAX_ROLLOUT = 100000
 
 # parameters for Epsilon Greedy Exploration
-EPSILON = 0.1
-MIN_EPSILON = 0.01
-E_DECAY = 0.95
+EPSILON = 0.4
+MIN_EPSILON = 0.1
+E_DECAY = 0.97
 
 # Parameters for Q-Learning
 ALPHA = 0.001 # Learning rate
@@ -26,21 +32,13 @@ GAMMA =  0.95 # Discount Factor, can also be 1 depending on dataset
 # Given s and a, returns the reward and an sp that is generated based
 # on the probabilities for a given state and action.
 # Assumes that there is at least 1 recorded action we can take.
-def take_action(s, a, sa_r, sa_sp, probs):
+def take_action(s, a, sa_r, sa_sp):
     """
     pseudocode:
     1. given s & a, get list of sp-s from sa_sp
     2. do sequential inclusive scan, first value that's greater than randomly generated action is sp
     """
-    r = sa_r[(s, a)] # 1-indexed
-    sps = sa_sp[(s, a)]
-    total = 0.0
-    rand = np.random.rand()
-    for sp in sps:
-        total += probs[(s, a, sp)]
-        if rand < total:
-            return r, sp
-    raise Exception('what the hell?!?')
+    return sa_r[(s, a)], sa_sp[(s, a)]
 
 
 # Policy (Pi) function for Epsilon Greedy Exploration.
@@ -49,8 +47,6 @@ def policy(q, s, s_a, e):
     if (np.random.rand() < e):
         return np.random.choice(a_l)
     actions = q[s, :]
-
-    # TODO: fix line below!
     avail_actions = actions[a_l]
     top = np.argmax(avail_actions) # a_l filters out by indices in a_l
     return a_l[top]
@@ -62,43 +58,19 @@ def policy(q, s, s_a, e):
 def precompute(dataset_filename):
     df = pd.read_csv(dataset_filename)
     # create initial dictionary: for each state and action, store all stuff from files
-    sa_r = {} # state to reward
-    d = {}
-    for _, row in tqdm(df.iterrows(), total=df.shape[0]):
-        if row['s'] not in d:
-            d[row['s']] = [[], [], []] # list of actions, then corresponding rewards, then corresponding next states
-        sa_r[(row['s'], row['a'])] = row['r']
-        d[row['s']][0].append(row['a'])
-        # d[row['s']][1].append(row['r'])
-        d[row['s']][2].append(row['sp'])
-    # create 2nd dictionary: for each key=(state, action, unique sp), store the probability of going to that sp
-    probs = {}
-    totals = {}
-    for s in d:
-        for i in range(len(d[s][0])):
-            a, sp = d[s][0][i], d[s][2][i]
-            if (s, a, sp) not in probs:
-                probs[(s, a, sp)] = 0
-            if (s, a) not in totals:
-                totals[(s, a)] = 0
-            probs[(s, a, sp)] += 1
-            totals[(s, a)] += 1
-    for s, a, sp in probs: # takes average by dividing over all possibilities for the given action
-        probs[(s, a, sp)] /= totals[(s, a)]
-    # create other final dictionaries: state to actions, state and action to sps
-    actions = set()
+    sa_r = {} # state action to reward
+    sa_sp = {}
     s_a = {}
-    for s, a in totals:
+    actions = set()
+    for _, row in tqdm(df.iterrows(), total=df.shape[0]):
+        s, a, r, sp = row['s'], row['a'], row['r'], row['sp']
+        sa_r[(s, a)] = r
+        sa_sp[(s, a)] = sp
         if s not in s_a:
             s_a[s] = set()
         s_a[s].add(a)
         actions.add(a)
-    sa_sp = {}
-    for s, a, sp in probs:
-        if (s, a) not in sa_sp:
-            sa_sp[(s, a)] = set()
-        sa_sp[(s, a)].add(sp)
-    return sa_r, s_a, sa_sp, probs, actions
+    return sa_r, s_a, sa_sp, actions
 
 
 def main():
@@ -111,7 +83,7 @@ def main():
     dataset_filename = sys.argv[1]
     output_filename = sys.argv[2]
     print("Starting precomputing...")
-    sa_r, s_a, sa_sp, probs, actions = precompute(dataset_filename) # NOTE: 1-indexed!
+    sa_r, s_a, sa_sp, actions = precompute(dataset_filename) # NOTE: 1-indexed!
     print("Finished precomputing.")
     num_s = max(s_a)
     num_a = len(actions)
@@ -119,7 +91,7 @@ def main():
     print("\nStarting iterations...")
     for _ in tqdm(range(NUM_ITERATIONS)):
         # pick random first starting state
-        s = np.random.randint(1, q.shape[0])
+        s = np.random.randint(1, q.shape[0]) # TODO: pick out of the 1 of 2 starting states
         for _ in range(MAX_ROLLOUT): 
             # No actions for a state means we have reached a dead-end
             if s not in s_a:
@@ -129,7 +101,7 @@ def main():
             if (s, a) not in sa_sp:
                 print("\nwarning!")
             # Take action, observe next state and reward
-            r, sp = take_action(s, a, sa_r, sa_sp, probs) 
+            r, sp = take_action(s, a, sa_r, sa_sp) 
             # Q-learning update rule
             # print(ALPHA * (r + GAMMA * np.max(q[sp,:]) - q[s,a]))
             q[s,a] += ALPHA * (r + GAMMA * np.max(q[sp,:]) - q[s,a])
@@ -146,5 +118,5 @@ def main():
     np.savetxt(output_filename, final_p, delimiter=',', fmt='%s')
     print("finished!")
 
-if __name__ == '__main__':
+if __name__ == '__main__':  
     main()
