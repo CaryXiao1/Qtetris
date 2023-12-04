@@ -120,11 +120,11 @@ class MiniBoard():
 
     '''
     piece state is represented with
-    5 bits per column * 10 columns
-    4 + 5 bits for current piece column and row
-    3 bits for current piece type
+    3 bits per column * 4 columns
+    2 + 3 bits for current piece column and row
+    1 bits for current piece type
     2 bits for current piece orientation
-    = 64 bits
+    = 20 bits
     '''
     def get_state(self):
         out = 0
