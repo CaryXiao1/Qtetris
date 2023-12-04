@@ -9,85 +9,7 @@ moves they have made.
 import tkinter as tk
 import numpy as np
 from engine.miniplayerboard import MiniPlayerBoard
-
-class TetrisCanvas(tk.Canvas):
-    def __init__(self, root, w, h, score_str, moves_str):
-        super().__init__(root, width=w, height=h, bg="black")
-        # self.matrix = np.zeros((20, 10))
-        self.board = MiniPlayerBoard()
-        self.score = 0
-        self.num_moves = 0
-        self.score_str = score_str
-        self.moves_str = moves_str
-        self.game_over = False
-
-    def start_game(self):
-        # draw line
-        # render the starting pos of the
-        self.board = MiniPlayerBoard()
-        self.score = 0
-        self.num_moves = 0
-        self.score_str.set("Score: 0")
-        self.moves_str.set("# Moves: 0")
-        self.update_game()
-        self.game_over = False
-
-    def do_move(self):
-        if self.game_over: return
-        points_added = self.board.turn()
-        if points_added == -100:
-            self.game_over = True
-            return
-        self.update_game()
-        self.num_moves += 1
-        self.moves_str.set("# Moves: " + str(self.num_moves))
-        if points_added != 0:
-            self.score += points_added
-            self.score_str.set("Score: " + str(self.score))
-
-    def left(self):
-        self.board.set_move(0)
-        self.do_move()
-
-    def right(self):
-        self.board.set_move(1)
-        self.do_move()
-
-    def rotate_left(self):
-        self.board.set_move(2)
-        self.do_move()
-
-    def rotate_right(self):
-        self.board.set_move(3)
-        self.do_move()
-
-    def do_nothing(self):
-        self.board.set_move(4)
-        self.do_move()
-
-    # wrapper functions to eliminate event from keystrokes
-    def left_keypress(self, _):
-        self.left()
-    def right_keypress(self, _):
-        self.right()
-    def do_nothing_keypress(self, _):
-        self.do_nothing()
-    def rotate_left_keypress(self, _):
-        self.rotate_left()
-    def rotate_right_keypress(self, _):
-        self.rotate_right()
-
-    def update_game(self):
-        states = self.board.display_info() # TODO: replace that with Michael's function!
-        self.delete("all")
-        self.create_line(0, 100, 200, 100, fill="red")
-        for i in range(8):
-            for j in range(4):
-                if states[i, j] != 0:
-                    x1, x2 = 50 * j + 1, 50 * j + 50
-                    y1, y2 = 50 * i + 1, 50 * i + 50
-                    color = "gray" if states[i, j] == 1 else "red"
-                    self.create_rectangle(x1, y1, x2, y2, fill=color)
+from app_utils.app_utils import TetrisCanvas
 
 class App:
     def print_click(self):
@@ -107,16 +29,22 @@ class App:
         moves_str = tk.StringVar(right_frame, "# Moves: 0")
         moves_label = tk.Label(right_frame, textvariable=moves_str, height=2)
         moves_label.pack()
+        # bot button labels
+        rand_str = tk.StringVar(right_frame, "Start Rand Bot")
+        ql_str = tk.StringVar(right_frame, "Start QL Bot")
         # create tetris board
-        canvas = TetrisCanvas(left_frame, 200, 400, score_str, moves_str)
+        canvas = TetrisCanvas(left_frame, 200, 400, score_str, moves_str, rand_str, ql_str)
         canvas.pack()
-        # movement buttons
+        # movement and bot buttons
         start = tk.Button(right_frame, text="Start Game!", command=canvas.start_game)
         left = tk.Button(right_frame, text="Left", command=canvas.left)
         right = tk.Button(right_frame, text="Right", command=canvas.right)
         do_nothing = tk.Button(right_frame, text="Pass", command=canvas.do_nothing)
         rotate_left = tk.Button(right_frame, text="Rotate Left", command=canvas.rotate_left)
         rotate_right = tk.Button(right_frame, text="Rotate Right", command=canvas.rotate_right)
+        rand = tk.Button(right_frame, textvariable=rand_str, command=canvas.toggle_rand)
+        ql = tk.Button(right_frame, textvariable=ql_str, command=canvas.toggle_ql)
+        
         # add keybinds as well
         root.bind("a", canvas.left_keypress)
         root.bind("<Left>", canvas.left_keypress)
@@ -133,6 +61,8 @@ class App:
         do_nothing.pack(pady=5)
         rotate_left.pack(pady=5)
         rotate_right.pack(pady=5)
+        rand.pack(pady=5)
+        ql.pack(pady=5)
 
 
 root = tk.Tk()
