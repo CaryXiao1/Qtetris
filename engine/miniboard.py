@@ -135,7 +135,7 @@ class MiniBoard():
             # 3.3 generate a new piece, and check if it is obstructed
             self.gen_new_tetromino()
             if self.check_collision(self.piece_ori, self.piece_r, self.piece_c, len(self.piece_ori)):
-                return -1  # game end
+                return -100  # game end
 
         return filled_lines ** 2  # score earned this move
 

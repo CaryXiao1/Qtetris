@@ -35,7 +35,7 @@ class TetrisCanvas(tk.Canvas):
     def do_move(self):
         if self.game_over: return
         points_added = self.board.turn()
-        if points_added == -1:
+        if points_added == -100:
             self.game_over = True
             return
         self.update_game()
