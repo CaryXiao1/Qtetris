@@ -12,6 +12,27 @@ class MiniBoard():
 
         self.gen_new_tetromino()
 
+    def __init__(self, state):
+        self.occupancy = np.zeros((8, 4), dtype=bool)
+
+        # assume no holes in board
+        for c in range(4):
+            self.occupancy[state%8:, c] = True
+            state >>= 3
+
+        self.piece_c = state%4
+        state >>= 2
+
+        self.piece_r = state%8
+        state >>= 3
+
+        if state%2: self.cur_type = 'L'
+        else: self.cur_type = 'I'
+        state >>= 1
+
+        self.ori_number = state
+
+
     def gen_new_tetromino(self):
         self.cur_type = np.random.choice(['L', 'I'])
         (self.piece_r, self.piece_c) = (0, 1)  # upper left corner of new piece
@@ -114,7 +135,7 @@ class MiniBoard():
             # 3.3 generate a new piece, and check if it is obstructed
             self.gen_new_tetromino()
             if self.check_collision(self.piece_ori, self.piece_r, self.piece_c, len(self.piece_ori)):
-                return -1  # game end
+                return -100  # game end
 
         return filled_lines ** 2  # score earned this move
 
