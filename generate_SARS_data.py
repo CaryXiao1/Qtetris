@@ -6,6 +6,13 @@ from collections import deque
 from engine.miniplayerboard import MiniPlayerBoard
 from engine.mini_tetromino_utils import *
 
+def get_start_states():  # should print 2197640, 100488
+    b = MiniPlayerBoard()
+    state = b.get_state()
+    print(state)
+    while state == b.get_state(): b = MiniPlayerBoard()
+    print(b.get_state())
+
 def goofyahhhtest():
     b1 = MiniPlayerBoard()
     state1 = b1.get_state()
