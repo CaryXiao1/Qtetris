@@ -8,7 +8,7 @@ usage: python3 random-decision.py <output>.policy
 """
 
 # some constants specific for QTetris
-TOTAL_STATES = 2**20
+TOTAL_STATES = 2**24
 
 
 import random

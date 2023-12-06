@@ -16,12 +16,12 @@ import pandas as pd
 import numpy as np
 from tqdm import tqdm
 
-from ..app_utils.app_utils import Bot, TetrisCanvas
+# from ..app_utils.app_utils import Bot
 
 NUM_TOTAL_REPEATS = 5
 
 NUM_ITERATIONS = 10000000
-MAX_ROLLOUT = 100
+MAX_ROLLOUT = 500
 
 # parameters for Epsilon Greedy Exploration
 EPSILON = 0.5
@@ -36,13 +36,21 @@ GAMMA =  0.95 # Discount Factor, can also be 1 depending on dataset
 # Given s and a, returns the reward and an sp that is generated based
 # on the probabilities for a given state and action.
 # Assumes that there is at least 1 recorded action we can take.
-def take_action(s, a, sa_r, sa_sp):
+def take_action(s, a, sa_r, sa_sp, probs):
     """
     pseudocode:
     1. given s & a, get list of sp-s from sa_sp
     2. do sequential inclusive scan, first value that's greater than randomly generated action is sp
     """
-    return sa_r[(s, a)], sa_sp[(s, a)]
+    r = sa_r[(s, a)] # 1-indexed
+    sps = sa_sp[(s, a)]
+    total = 0.0
+    rand = np.random.rand()
+    for sp in sps:
+        total += probs[(s, a, sp)]
+        if rand < total:
+            return r, sp
+    raise Exception('what the hell?!?')
 
 
 # Policy (Pi) function for Epsilon Greedy Exploration.
@@ -62,19 +70,46 @@ def policy(q, s, s_a, e):
 def precompute(dataset_filename):
     df = pd.read_csv(dataset_filename)
     # create initial dictionary: for each state and action, store all stuff from files
-    sa_r = {} # state action to reward
-    sa_sp = {}
-    s_a = {}
-    actions = set()
+    sa_r = {} # state to reward
+    d = {}
     for _, row in tqdm(df.iterrows(), total=df.shape[0]):
-        s, a, r, sp = row['s'], row['a'], row['r'], row['sp']
+        s, a = row['s'], row['a'] + 1 # make a 1-indexed inside this function so we can tell when a specific state
+        r, sp = row['r'], row['sp']   # has not been visited
+
+        if s not in d:
+            d[s] = [[], [], []] # list of actions, then corresponding rewards, then corresponding next states
         sa_r[(s, a)] = r
-        sa_sp[(s, a)] = sp
+        d[s][0].append(a)
+        # d[row['s']][1].append(row['r'])
+        d[s][2].append(sp)
+    # create 2nd dictionary: for each key=(state, action, unique sp), store the probability of going to that sp
+    probs = {}
+    totals = {}
+    for s in d:
+        for i in range(len(d[s][0])):
+            a, sp = d[s][0][i], d[s][2][i]
+            if (s, a, sp) not in probs:
+                probs[(s, a, sp)] = 0
+            if (s, a) not in totals:
+                totals[(s, a)] = 0
+            probs[(s, a, sp)] += 1
+            totals[(s, a)] += 1
+    for s, a, sp in probs: # takes average by dividing over all possibilities for the given action
+        probs[(s, a, sp)] /= totals[(s, a)]
+    # create other final dictionaries: state to actions, state and action to sps
+    actions = set()
+    s_a = {}
+    for s, a in totals:
         if s not in s_a:
             s_a[s] = set()
         s_a[s].add(a)
         actions.add(a)
-    return sa_r, s_a, sa_sp, actions
+    sa_sp = {}
+    for s, a, sp in probs:
+        if (s, a) not in sa_sp:
+            sa_sp[(s, a)] = set()
+        sa_sp[(s, a)].add(sp)
+    return sa_r, s_a, sa_sp, probs, actions
 
 
 def main():
@@ -87,7 +122,7 @@ def main():
     dataset_filename = sys.argv[1]
     output_filename = sys.argv[2]
     print("Starting precomputing...")
-    sa_r, s_a, sa_sp, actions = precompute(dataset_filename) # NOTE: 1-indexed!
+    sa_r, s_a, sa_sp, probs, actions = precompute(dataset_filename) # NOTE: 1-indexed!
     num_s = max(s_a)
     num_a = len(actions)
     q = np.zeros((num_s + 1, num_a + 1)) # make everything 1-indexed for simplicity
@@ -106,7 +141,7 @@ def main():
                 if (s, a) not in sa_sp:
                     print("\nwarning!")
                 # Take action, observe next state and reward
-                r, sp = take_action(s, a, sa_r, sa_sp)
+                r, sp = take_action(s, a, sa_r, sa_sp, probs) 
                 # Q-learning update rule
                 # print(ALPHA * (r + GAMMA * np.max(q[sp,:]) - q[s,a]))
                 q[s,a] += ALPHA * (r + GAMMA * np.max(q[sp,:]) - q[s,a])
@@ -131,7 +166,7 @@ def main():
         print('Writing file...')
         np.savetxt(output_filename, final_p, delimiter=',', fmt='%s')
         print('Beginning evaluation...')
-        testbot = Bot(output_filename)
+        # testbot = Bot(output_filename)
 
     print("Finished!")
 

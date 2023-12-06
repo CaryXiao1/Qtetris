@@ -10,6 +10,13 @@ RAND_FILENAME = 'app_utils/rand.policy'
 
 BOT_TIMESTEP = 10 # milliseconds to wait before each next move is performed by bots
 
+# constants for gathering data
+RAND_POINTS_OUT = 'result/random_total_score.csv'
+RAND_RATIO_OUT = 'result/random_score_ratio.csv'
+
+QL_POINTS_OUT = 'result/ql_total_score.csv'
+QL_RATIO_OUT = 'result/ql_score_ratio.csv'
+
 import numpy as np
 import tkinter as tk
 from engine.miniplayerboard import MiniPlayerBoard
@@ -31,9 +38,36 @@ class TetrisCanvas(tk.Canvas):
         self.ql_bot = Bot(QL_FILENAME)
         self.rand_bot = Bot(RAND_FILENAME)
 
+    # def __init__(self, bot_filename):
+    #     self.board = MiniPlayerBoard()
+    #     self.score = 0
+    #     self.num_moves = 0
+    #     self.score_str = None
+    #     self.bot_running = 0 # set to 0 for player control, 1 for random bot and 2 for ql bot
+    #     self.game_over = False
+    #     self.rand_bot = Bot(bot_filename)
+
     def start_game(self):
-        # draw line
-        # render the starting pos of the
+        # (for storing the total score from a bot)
+        if self.bot_running == 1:
+            score = self.score
+            moves = self.num_moves
+            f_score = open(RAND_POINTS_OUT, "a")  # append mode
+            f_moves = open(RAND_RATIO_OUT, "a")
+            f_score.write(score + ',')
+            f_moves.write(str(float(score) / float(moves)) + ',') 
+            f_score.close()
+            f_moves.close()
+        if self.bot_running == 2:
+            score = self.score_str.get()[self.score_str.get().find(' ') + 1:]
+            moves = self.moves_str.get()[self.moves_str.get().find(':') + 2:]
+            f_score = open(QL_POINTS_OUT, "a")  # append mode
+            f_moves = open(QL_RATIO_OUT, "a")
+            f_score.write(score + ',')
+            f_moves.write(str(float(score) / float(moves)) + ',') 
+            f_score.close()
+            f_moves.close()
+
         self.board = MiniPlayerBoard()
         self.score = 0
         self.num_moves = 0
@@ -57,23 +91,23 @@ class TetrisCanvas(tk.Canvas):
 
     def left(self):
         self.board.set_move(0)
-        self.do_move()
+        return self.do_move()
 
     def right(self):
         self.board.set_move(1)
-        self.do_move()
+        return self.do_move()
 
     def rotate_left(self):
         self.board.set_move(2)
-        self.do_move()
+        return self.do_move()
 
     def rotate_right(self):
         self.board.set_move(3)
-        self.do_move()
+        return self.do_move()
 
     def do_nothing(self):
         self.board.set_move(4)
-        self.do_move()
+        return self.do_move()
 
     # wrapper functions to eliminate event from keystrokes
     def left_keypress(self, _):
@@ -120,7 +154,7 @@ class TetrisCanvas(tk.Canvas):
         elif self.bot_running == 0:
             self.bot_running = 2
             self.ql_bot_str.set("Stop QL Bot")
-            # self.run_ql()
+            self.run_ql()
         elif self.bot_running == 2:
             self.bot_running = 0
             self.ql_bot_str.set("Start QL Bot")
@@ -132,8 +166,10 @@ class TetrisCanvas(tk.Canvas):
 
     def run_ql(self):
         if self.bot_running != 2: return
-        self.ql_bot.perform_action()
+        self.ql_bot.perform_action(self)
         self.after(BOT_TIMESTEP, self.run_ql)
+
+    
 
 class Bot:
     def __init__(self, filename):
