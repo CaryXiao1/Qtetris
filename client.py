@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 """
 client.py
 
@@ -44,7 +46,7 @@ class App:
         rotate_right = tk.Button(right_frame, text="Rotate Right", command=canvas.rotate_right)
         rand = tk.Button(right_frame, textvariable=rand_str, command=canvas.toggle_rand)
         ql = tk.Button(right_frame, textvariable=ql_str, command=canvas.toggle_ql)
-        
+
         # add keybinds as well
         root.bind("a", canvas.left_keypress)
         root.bind("<Left>", canvas.left_keypress)
