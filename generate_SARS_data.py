@@ -6,34 +6,6 @@ from collections import deque
 from engine.miniplayerboard import MiniPlayerBoard
 from engine.mini_tetromino_utils import *
 
-def get_start_states():  # should print 2197640, 100488
-    b = MiniPlayerBoard()
-    state = b.get_state()
-    print(state)
-    while state == b.get_state(): b = MiniPlayerBoard()
-    print(b.get_state())
-
-def goofyahhhtest():
-    b1 = MiniPlayerBoard()
-    state1 = b1.get_state()
-    print(state1)
-    b2 = MiniPlayerBoard(state1)
-    state2 = b2.get_state()
-    print(state2)
-    assert state1 == state2
-    b2.turn()
-    state3 = b2.get_state()
-    print(state3)
-    b2.turn()
-    print(b2.get_state())
-    b2.turn()
-    print(b2.get_state())
-    b2.turn()
-    print(b2.get_state())
-    b2.turn()
-    print(b2.get_state())
-    return
-
 """
 This function creates outfile.txt with the list of ~5million
 tuples (state, action, reward, state'), for all possible
