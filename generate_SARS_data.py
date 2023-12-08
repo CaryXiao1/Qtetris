@@ -22,13 +22,18 @@ def main():
         seen_states.add(b.get_state())
         q.append(b.get_state())
 
-        counter = 0
+        temps = b.get_state()
+        while b.get_state() == temps: b = MiniPlayerBoard()
+
+        seen_states.add(b.get_state())
+        q.append(b.get_state())
+
+        p_bar = tqdm(total=437400)
+        p_bar.update()
 
         while q:
 
-            if counter % 10000 == 0:  # progress print
-                print(str(counter) + ' / ~10,000,000')
-            counter += 1
+            p_bar.update()
 
             state = q.popleft()
 
@@ -65,6 +70,7 @@ def main():
                             if not next_state in seen_states:
                                 q.append(next_state)
                                 seen_states.add(next_state)
+    p_bar.close()
 
 if __name__ == '__main__':
     main()
