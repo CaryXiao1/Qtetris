@@ -12,6 +12,7 @@ class MiniBoard():
             self.piece_c = None
             self.piece_ori = None
             self.ori_number = 0
+            self.hit_bottom = False
 
             self.gen_new_tetromino()
         else:
@@ -45,15 +46,15 @@ class MiniBoard():
         self.piece_ori = get_start_ori(self.cur_type)
         self.ori_number = 0
 
-    def get_input(self):
-        ''' input options:
-        0 : translate left
-        1 : translate right
-        2 : rotate counter-clockwise
-        3 : rotate clockwise
-        4 : do nothing '''
+    # def get_input(self):
+    #     ''' input options:
+    #     0 : translate left
+    #     1 : translate right
+    #     2 : rotate counter-clockwise
+    #     3 : rotate clockwise
+    #     4 : do nothing '''
 
-        return np.random.randint(5)
+    #     return np.random.randint(5)
 
     def check_collision(self, mat, r, c, side_len):  # true if collision
         # 1. extract submatrix from occupancy with correct size
@@ -112,7 +113,7 @@ class MiniBoard():
         self.piece_r = new_r
         return False
 
-    def turn(self):
+    def turn(self, regen=True):
         filled_lines = 0
 
         # 1. get an input from user
@@ -122,10 +123,10 @@ class MiniBoard():
         self.update_piece(player_input)
 
         # 3. move down if possible
-        hit_bottom = self.gravity_piece()
+        self.hit_bottom = self.gravity_piece()
 
         # 3.1 if not possible, freeze piece
-        if hit_bottom:
+        if self.hit_bottom:
             self.freeze(self.piece_ori, self.piece_r, self.piece_c, len(self.piece_ori))
 
             # 3.2 check if lines are cleared, and update occupancy accordingly
@@ -138,9 +139,11 @@ class MiniBoard():
                 self.occupancy = np.vstack([np.zeros((4), dtype=bool), self.occupancy])
 
             # 3.3 generate a new piece, and check if it is obstructed
-            self.gen_new_tetromino()
-            if self.check_collision(self.piece_ori, self.piece_r, self.piece_c, len(self.piece_ori)):
-                return -100  # game end
+            if regen:
+                self.gen_new_tetromino()
+                if self.check_collision(self.piece_ori, self.piece_r, self.piece_c, len(self.piece_ori)):
+                    return -100  # game end
+                self.hit_bottom = False
 
         return filled_lines ** 2  # score earned this move
 
