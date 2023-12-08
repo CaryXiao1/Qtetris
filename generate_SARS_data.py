@@ -6,17 +6,6 @@ from collections import deque
 from engine.miniplayerboard import MiniPlayerBoard
 from engine.mini_tetromino_utils import *
 
-def dummy_test():
-    b = MiniPlayerBoard()
-    print(b.get_state())
-    b.cur_type = 'L'
-    b.piece_ori = get_start_ori('L')
-    print(b.get_state())
-    b.cur_type = 'I'
-    b.piece_ori = get_start_ori('I')
-    print(b.get_state())
-    return
-
 """
 This function creates outfile.txt with the list of ~5million
 tuples (state, action, reward, state'), for all possible
@@ -41,16 +30,11 @@ def main():
             for a in range(5):  # try all actions
                 b = MiniPlayerBoard(state)
                 b.set_move(a)
-                '''print('statrting with', b.get_state(), a)
-                while b.get_state() == state:
-                    r = b.turn(regen=False)
-                    print(r, b.get_state())
-                print('escaped')'''
 
                 r = b.turn(regen=False)
                 next_state = b.get_state()
 
-                if r == -100:  # game over
+                if r == -1:  # game over
                     if not (state, a, next_state) in written_state_action_next:
                         f.write(str(state)+','+str(a)+','+str(r)+','+str(next_state)+'\n')
                         written_state_action_next.add((state, a, next_state))
@@ -63,7 +47,7 @@ def main():
                         next_state = b.get_state()
                         if b.check_collision(b.piece_ori, b.piece_r, b.piece_c, len(b.piece_ori)):
                             if not (state, a, next_state) in written_state_action_next:
-                                f.write(str(state)+','+str(a)+','+str(r-100)+','+str(next_state)+'\n')
+                                f.write(str(state)+','+str(a)+','+str(r-1)+','+str(next_state)+'\n')
                                 written_state_action_next.add((state, a, next_state))
                         else:
                             if not (state, a, next_state) in written_state_action_next:

@@ -142,7 +142,7 @@ class MiniBoard():
             if regen:
                 self.gen_new_tetromino()
                 if self.check_collision(self.piece_ori, self.piece_r, self.piece_c, len(self.piece_ori)):
-                    return -100  # game end
+                    return -1  # game end
                 self.hit_bottom = False
 
         return filled_lines ** 2  # score earned this move
