@@ -15,12 +15,13 @@ import sys
 import pandas as pd
 import numpy as np
 from tqdm import tqdm
+import random
 
 # from ..app_utils.app_utils import Bot
 
 NUM_TOTAL_REPEATS = 5
 
-NUM_ITERATIONS = 10000000
+NUM_ITERATIONS = 1000000
 MAX_ROLLOUT = 500
 
 # parameters for Epsilon Greedy Exploration
@@ -131,7 +132,8 @@ def main():
         print("Starting iterations ("+str(i+1)+'/'+str(NUM_TOTAL_REPEATS)+")...")
         for _ in tqdm(range(NUM_ITERATIONS)):
             # pick random first starting state
-            s = np.random.randint(1, q.shape[0]) # TODO: pick out of the 1 of 2 starting states
+            # s = np.random.randint(1, q.shape[0]) # TODO: pick out of the 1 of 2 starting states
+            s = random.choice([2197640, 100488])
             for _ in range(MAX_ROLLOUT):
                 # No actions for a state means we have reached a dead-end
                 if s not in s_a:
@@ -141,7 +143,7 @@ def main():
                 if (s, a) not in sa_sp:
                     print("\nwarning!")
                 # Take action, observe next state and reward
-                r, sp = take_action(s, a, sa_r, sa_sp, probs) 
+                r, sp = take_action(s, a, sa_r, sa_sp, probs)
                 # Q-learning update rule
                 # print(ALPHA * (r + GAMMA * np.max(q[sp,:]) - q[s,a]))
                 q[s,a] += ALPHA * (r + GAMMA * np.max(q[sp,:]) - q[s,a])
