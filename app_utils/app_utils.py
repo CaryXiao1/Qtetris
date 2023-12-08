@@ -79,7 +79,7 @@ class TetrisCanvas(tk.Canvas):
     def do_move(self):
         if self.game_over: return
         points_added = self.board.turn()
-        if points_added == -100:
+        if points_added == -1:
             self.game_over = True
             return
         self.update_game()
@@ -180,12 +180,13 @@ class Bot:
         state = canvas.board.get_state()
         action = self.lines[state].strip()
         if action == '0':
-            canvas.left()
+            return canvas.left()
         if action == '1':
-            canvas.right()
+            return canvas.right()
         if action == '2':
-            canvas.rotate_left()
+            return canvas.rotate_left()
         if action == '3':
-            canvas.rotate_right()
+            return canvas.rotate_right()
         if action == '4':
-            canvas.do_nothing()
+            return canvas.do_nothing()
+        return -1
