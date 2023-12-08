@@ -69,6 +69,6 @@ class App:
 
 root = tk.Tk()
 app = App(root)
-root.geometry("435x700")
+root.geometry("435x500")
 root.title("My Tkinter App")
 root.mainloop()

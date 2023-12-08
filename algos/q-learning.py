@@ -159,9 +159,11 @@ def main():
         v = 0
         for i in tqdm(range(len(final_p))):
             if final_p[i] == 0:
-                final_p[i] = np.random.randint(1, q.shape[1])
+                final_p[i] = np.random.randint(0, q.shape[1] - 1) # makes it 0-indexed
             else:
                 v += max(0, q[i, final_p[i]])
+                final_p[i] -= 1 # makes it 0-indexed
+                
                 bueno += 1
         print('We have', bueno, 'nonrandom actions, expected 437399')
         print('Found mean best q of', v / bueno)

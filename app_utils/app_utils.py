@@ -8,7 +8,7 @@ file and then picks that given state.
 QL_FILENAME = 'app_utils/ql.policy'
 RAND_FILENAME = 'app_utils/rand.policy'
 
-BOT_TIMESTEP = 10 # milliseconds to wait before each next move is performed by bots
+BOT_TIMESTEP = 50 # milliseconds to wait before each next move is performed by bots
 
 # constants for gathering data
 RAND_POINTS_OUT = 'result/random_total_score.csv'
@@ -54,16 +54,16 @@ class TetrisCanvas(tk.Canvas):
             moves = self.num_moves
             f_score = open(RAND_POINTS_OUT, "a")  # append mode
             f_moves = open(RAND_RATIO_OUT, "a")
-            f_score.write(score + ',')
+            f_score.write(str(score) + ',')
             f_moves.write(str(float(score) / float(moves)) + ',') 
             f_score.close()
             f_moves.close()
         if self.bot_running == 2:
-            score = self.score_str.get()[self.score_str.get().find(' ') + 1:]
-            moves = self.moves_str.get()[self.moves_str.get().find(':') + 2:]
+            score = self.score
+            moves = self.num_moves
             f_score = open(QL_POINTS_OUT, "a")  # append mode
             f_moves = open(QL_RATIO_OUT, "a")
-            f_score.write(score + ',')
+            f_score.write(str(score) + ',')
             f_moves.write(str(float(score) / float(moves)) + ',') 
             f_score.close()
             f_moves.close()
